@@ -114,6 +114,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:0 0 10px}
 </main>
 <div class="bar"><button id="reset">ਸਾਫ਼ · Clear</button><button id="share">ਵਟਸਐਪ ਭੇਜੋ · Share</button></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const BASE=18,RATE=1,CLEAN=1,BAG=37.5;
@@ -142,56 +143,17 @@ function calc(){
 ['party','qty','moist'].forEach(i=>$(i).addEventListener('input',calc));
 $('reset').onclick=()=>{['party','qty','moist'].forEach(i=>$(i).value='');calc()};
 
-/* ---------- A4 slip drawn on canvas ---------- */
+/* ---------- A4 slip = exact snapshot of this page ---------- */
 async function makeSlip(){
-  try{await Promise.all([document.fonts.load('800 40px "Noto Sans Gurmukhi"'),document.fonts.load('700 30px Mukta'),document.fonts.load('400 30px Mukta')])}catch(e){}
+  if(!window.html2canvas) throw new Error('lib');
+  try{await document.fonts.ready}catch(e){}
+  $('stamp').textContent=stampNow();
+  const shot=await html2canvas(document.body,{scale:2,windowWidth:640,scrollX:0,scrollY:-window.scrollY,backgroundColor:'#f6efdc',useCORS:true,logging:false,
+    onclone:d=>{d.documentElement.setAttribute('data-theme','light');const bar=d.querySelector('.bar');if(bar)bar.remove();d.body.style.paddingBottom='12px';d.documentElement.style.padding='0'}});
   const W=1240,H=1754,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
-  const G='#1f6b2a',GOLD='#e39a12',INK='#2d2310',MUT='#7b6a45',LINE='#e7d9b0',RED='#b3261e';
-  const F=(w,s,fam='Mukta')=>x.font=`${w} ${s}px "${fam}", "Noto Sans Gurmukhi", sans-serif`;
-  const T=(t,px,py,al='left',col=INK)=>{x.fillStyle=col;x.textAlign=al;x.fillText(t,px,py)};
-  x.fillStyle='#fffdf6';x.fillRect(0,0,W,H);
-  // header
-  let g=x.createLinearGradient(0,0,W,300);g.addColorStop(0,'#14532d');g.addColorStop(1,'#2f8a3a');
-  x.fillStyle=g;x.fillRect(0,0,W,300);
-  F(800,86,'Noto Sans Gurmukhi');T('ਗੁਰਮਤ ਟ੍ਰੇਡਰਜ਼',W/2,130,'center','#ffd36b');
-  F(800,46);T('GURMAT TRADERS',W/2,200,'center','#fff');
-  F(400,28);T('ਅਨਾਜ ਮੰਡੀ · Grain Weight Calculation Slip',W/2,250,'center','#e6f2d8');
-  const cols=['#e39a12','#c62828','#1b4f9c','#2f8a3a'];
-  for(let i=0;i*40<W;i++){x.fillStyle=cols[i%4];x.fillRect(i*40,300,40,18)}
-  // meta
-  F(400,30);T('Date & Time: '+stampNow(),80,390,'left',MUT);
-  F(700,38);T('Party: '+(($('party').value.trim())||'—'),80,450,'left',INK);
-  // inputs
-  x.fillStyle='#eef6e8';x.strokeStyle=LINE;x.lineWidth=2;
-  [[80,490,'Quantity',fmtN(R.q)+' quintal'],[640,490,'Moisture',fmtN(R.m)+' %']].forEach(([bx,by,l,v])=>{
-    x.beginPath();x.roundRect(bx,by,520,120,18);x.fill();x.stroke();
-    F(400,26);T(l,bx+24,by+40,'left',MUT);F(800,46);T(v,bx+24,by+94,'left',INK)});
-  // table
-  const tx=80,tw=1080,cw=[400,300,380];let ty=660;
-  x.fillStyle=G;x.fillRect(tx,ty,tw,64);F(700,26);
-  T('Details',tx+20,ty+42,'left','#fff');T('Total Kg',tx+cw[0]+cw[1]-20,ty+42,'right','#fff');T('Quintal  |  Kg',tx+cw[0]+cw[1]+20,ty+42,'left','#fff');
-  const rows=[['Gross weight',R.gross,0],['Moisture cut ('+fmtN(R.extra)+'% extra)',R.mc,1],['Cleaning cut',R.cc,1],['Total cut',R.tc,1],['REMAINING',R.rem,2]];
-  ty+=64;
-  rows.forEach(([l,v,t])=>{
-    const h=t==2?110:92;
-    if(t==2){x.fillStyle='#14532d';x.fillRect(tx,ty+8,tw,h)}else{x.fillStyle='#eef6e8';x.fillRect(tx+cw[0]+cw[1],ty,cw[2],h);x.strokeStyle=LINE;x.lineWidth=2;x.beginPath();x.moveTo(tx,ty+h);x.lineTo(tx+tw,ty+h);x.stroke()}
-    const by=ty+(t==2?8:0)+h/2+12,col=t==2?'#fff':(t==1?RED:INK),sg=t==1?'– ':'';
-    F(t==2?800:600,t==2?36:30);T(l,tx+20,by,'left',col);
-    F(800,t==2?40:32);T(sg+fmt(v)+' kg',tx+cw[0]+cw[1]-20,by,'right',col);
-    const[q,k]=split(v);let px=tx+cw[0]+cw[1]+20;
-    F(800,t==2?44:34);const a=sg+fmtN(q);T(a,px,by,'left',t==2?'#ffd36b':G);px+=x.measureText(a).width+8;
-    F(400,24);T('quintal',px,by,'left',t==2?'#d9e8c9':MUT);px+=x.measureText('quintal').width+16;
-    F(800,t==2?44:34);const b=fmtN(k);T(b,px,by,'left',t==2?'#ffd36b':G);px+=x.measureText(b).width+8;
-    F(400,24);T('kg',px,by,'left',t==2?'#d9e8c9':MUT);
-    ty+=h+(t==2?8:0)});
-  // bags
-  ty+=50;x.fillStyle='#fff7e0';x.strokeStyle=GOLD;x.lineWidth=3;x.beginPath();x.roundRect(80,ty,1080,210,22);x.fill();x.stroke();
-  F(800,34,'Noto Sans Gurmukhi');T('ਅੰਦਾਜ਼ਨ ਬੋਰੀਆਂ · Estimated Bags',110,ty+55,'left',G);
-  F(800,84);T(String(R.full),110,ty+155,'left',INK);F(600,28);T('full bags',110+x.measureText(String(R.full)).width+14,ty+155,'left',MUT);
-  F(600,30);T('Exact: '+fmt(R.exact)+' bags',1130,ty+110,'right',INK);T('Left over: '+fmt(R.left)+' kg',1130,ty+160,'right',MUT);
-  // rules + footer
-  F(400,24);T('Rules: moisture above 18% → 1 kg cut per quintal for each 1%  |  Cleaning → 1 kg per quintal  |  1 bag = 37.5 kg',W/2,H-150,'center',MUT);
-  x.fillStyle=G;x.fillRect(0,H-90,W,90);F(700,30);T('Gurmat Traders · ਧੰਨਵਾਦ / Thank you',W/2,H-35,'center','#fff');
+  x.fillStyle='#f6efdc';x.fillRect(0,0,W,H);
+  const m=40,k=Math.min((W-2*m)/shot.width,(H-2*m)/shot.height),w=shot.width*k,h=shot.height*k;
+  x.drawImage(shot,(W-w)/2,(H-h)/2,w,h);
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
 $('share').onclick=async()=>{

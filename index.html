@@ -63,6 +63,7 @@ tr.final td:first-child{border-radius:10px 0 0 10px}tr.final td:last-child{borde
 .bar button{flex:1;font:inherit;font-weight:800;font-size:17px;border:0;border-radius:14px;min-height:52px;cursor:pointer}
 #share{background:#25a244;color:#fff;flex:2.2}#reset{background:transparent;color:var(--ink);border:2px solid var(--line)}
 #share:disabled{opacity:.5}
+.msg{display:none;position:fixed;left:12px;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));background:#2d2310;color:#fff;padding:10px 12px;border-radius:10px;font-size:14px;z-index:6;text-align:center}
 footer{text-align:center;color:var(--muted);font-size:12px;padding:0 0 10px}
 </style>
 </head>
@@ -112,6 +113,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:0 0 10px}
   </section>
   <footer>ਨਮੀ 18% ਤੋਂ ਵੱਧ: ਹਰ 1% ਤੇ 1 ਕਿਲੋ ਪ੍ਰਤੀ ਕੁਇੰਟਲ · ਸਫ਼ਾਈ: 1 ਕਿਲੋ ਪ੍ਰਤੀ ਕੁਇੰਟਲ<br>Moisture above 18%: 1 kg cut per quintal per 1% · Cleaning: 1 kg per quintal</footer>
 </main>
+<div class="msg" id="msg"></div>
 <div class="bar"><button id="reset">ਸਾਫ਼ · Clear</button><button id="share">ਵਟਸਐਪ ਭੇਜੋ · Share</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -156,21 +158,46 @@ async function makeSlip(){
   x.drawImage(shot,(W-w)/2,(H-h)/2,w,h);
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
+const sig=()=>JSON.stringify([$('party').value.trim(),$('qty').value,$('moist').value]);
+let cache=null,tmr=null,busy=null;
+function toast(t,ms){const m=$('msg');m.textContent=t;m.style.display=t?'block':'none';if(t&&ms)setTimeout(()=>{if(m.textContent===t)m.style.display='none'},ms)}
+function prep(){
+  if(busy)return busy;
+  if(!R.q)return Promise.resolve(false);
+  const key=sig();
+  busy=(async()=>{
+    try{const blob=await makeSlip();cache={blob,file:new File([blob],'gurmat-traders-slip.png',{type:'image/png'}),key};return true}
+    catch(e){cache=null;toast('Image error: '+((e&&(e.message||e.name))||e),8000);return false}
+    finally{busy=null}
+  })();
+  return busy;
+}
+['party','qty','moist'].forEach(i=>$(i).addEventListener('input',()=>{cache=null;clearTimeout(tmr);tmr=setTimeout(prep,900)}));
+async function doShare(){
+  const text=`Gurmat Traders\n${stampNow()}\nParty: ${$('party').value.trim()||'—'}\nQty: ${fmtN(R.q)} quintal | Moisture: ${fmtN(R.m)}%\nRemaining: ${split(R.rem)[0]} quintal ${fmtN(split(R.rem)[1])} kg\nBags: ${R.full} (+${fmt(R.left)} kg)`;
+  const file=cache.file;
+  if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Gurmat Traders',text});return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(cache.blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+  toast('Image saved. Attach it in WhatsApp.',6000);
+  window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+}
 $('share').onclick=async()=>{
   calc();
   if(!R.q){$('qty').focus();return}
-  const btn=$('share');btn.disabled=true;
+  clearTimeout(tmr);
   try{
-    const blob=await makeSlip(),file=new File([blob],'gurmat-traders-slip.png',{type:'image/png'});
-    const text=`Gurmat Traders\n${stampNow()}\nParty: ${$('party').value.trim()||'—'}\nQty: ${fmtN(R.q)} quintal | Moisture: ${fmtN(R.m)}%\nRemaining: ${split(R.rem)[0]} quintal ${fmtN(split(R.rem)[1])} kg\nBags: ${R.full} (+${fmt(R.left)} kg)`;
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Gurmat Traders',text})}
-    else{
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
-      alert('Slip image saved. Opening WhatsApp – attach the saved image there.');
-      window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+    if(!cache||cache.key!==sig()){
+      toast('ਤਿਆਰ ਹੋ ਰਿਹਾ… Preparing image…');
+      const ok=await prep();
+      if(!ok)return;
+      toast('');
     }
-  }catch(e){if(e&&e.name!=='AbortError')alert('Could not share. Please try again.')}
-  btn.disabled=false;
+    await doShare();
+  }catch(e){
+    if(e&&e.name==='AbortError')return;
+    if(e&&e.name==='NotAllowedError'){toast('ਚਿੱਤਰ ਤਿਆਰ ਹੈ — ਦੁਬਾਰਾ Share ਦਬਾਓ · Image ready, tap Share again',6000);return}
+    toast('Share error: '+((e&&(e.message||e.name))||e),8000);
+  }
 };
 calc();
 </script>

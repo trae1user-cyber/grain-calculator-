@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gurmat Traders – Grain Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gurmukhi:wght@600;800&family=Mukta:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6efdc;--card:#fffdf6;--ink:#2d2310;--muted:#7b6a45;--line:#e7d9b0;--green:#1f6b2a;--green2:#2f8a3a;--gold:#e39a12;--red:#b3261e;--soft:#eef6e8;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17150d;--card:#241f12;--ink:#f6ebc9;--muted:#bfae7b;--line:#453b20;--green:#7fd483;--green2:#2f8a3a;--gold:#ffb938;--red:#ff8a80;--soft:#1f2a1c}}
+:root[data-theme="dark"]{--bg:#17150d;--card:#241f12;--ink:#f6ebc9;--muted:#bfae7b;--line:#453b20;--green:#7fd483;--green2:#2f8a3a;--gold:#ffb938;--red:#ff8a80;--soft:#1f2a1c}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Mukta',system-ui,sans-serif;font-size:16px;padding-bottom:84px}
+.hero{background:linear-gradient(160deg,#14532d,#2f8a3a);color:#fff;text-align:center;padding:16px 14px 22px;border-bottom:6px solid var(--gold);position:relative}
+.stamp{display:inline-block;background:rgba(0,0,0,.25);border-radius:20px;padding:3px 12px;font-size:13px;margin-bottom:8px}
+.pa{font-family:'Noto Sans Gurmukhi',sans-serif;font-weight:800;font-size:clamp(26px,8vw,38px);color:#ffd36b;line-height:1.35}
+.hero h1{margin:0;font-size:clamp(16px,4.6vw,22px);letter-spacing:3px;text-transform:uppercase;font-weight:800}
+.hero p{margin:4px 0 0;font-size:14px;opacity:.9}
+.pat{height:10px;background:repeating-linear-gradient(90deg,#e39a12 0 12px,#c62828 12px 24px,#1b4f9c 24px 36px,#2f8a3a 36px 48px)}
+main{max-width:640px;margin:0 auto;padding:14px 12px;display:grid;gap:14px}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(60,40,0,.08)}
+h2{margin:0 0 12px;font-size:18px;color:var(--green);display:flex;align-items:center;gap:8px}
+h2 small{font-family:'Noto Sans Gurmukhi',sans-serif;color:var(--muted);font-weight:600;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}
+label{display:block;font-weight:700;font-size:14px;color:var(--muted);margin-bottom:5px}
+input{width:100%;font:inherit;font-size:20px;font-weight:700;padding:13px 12px;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+input[type=text]{font-size:17px;font-weight:600}
+input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(227,154,18,.3)}
+.u{position:relative}.u i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--muted);font-size:14px;pointer-events:none}
+.u input{padding-right:62px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;padding:6px 6px;border-bottom:2px solid var(--line)}
+td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:15px}
+td.k{font-weight:700;white-space:nowrap}
+td.q{background:var(--soft);font-weight:800;color:var(--green);line-height:1.25}
+td.q b{font-size:19px}td.q span{font-size:12px;font-weight:600;color:var(--muted);margin:0 3px 0 1px}
+.neg td.k{color:var(--red)}
+tr.final td{border-bottom:0;background:var(--green2);color:#fff;font-weight:800}
+tr.final td.q{background:#14532d;color:#ffd36b}tr.final td.q span{color:#d9e8c9}
+td small{display:block;color:var(--muted);font-weight:600;font-size:12px;line-height:1.2}
+tr.final td small{color:#d9e8c9}
+tr.tot td{background:#c9ecb8;color:#14532d;font-weight:800}tr.tot td.k{color:#b3261e}tr.tot td.q{background:#b5e39f;color:#14532d}tr.tot td.q span,tr.tot td small{color:#3d6b3a}
+th small{display:block;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0}
+tr.final td:first-child{border-radius:10px 0 0 10px}tr.final td:last-child{border-radius:0 10px 10px 0}
+.hl{background:linear-gradient(160deg,#14532d,#2f8a3a);color:#fff;border:0;border-bottom:6px solid var(--gold);text-align:center}
+.hl{padding:10px 12px}.hl h2{color:#ffd36b;justify-content:center;font-size:16px;margin-bottom:8px}.hl h2 small{color:#e6f2d8}
+.hl .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hl .two div{background:rgba(0,0,0,.25);border-radius:12px;padding:7px 4px}
+.hl .two span{display:block;font-size:13px;font-weight:600;color:#e6f2d8;letter-spacing:.5px;text-transform:uppercase}
+.hl .two strong{display:block;font-size:clamp(20px,6vw,30px);font-weight:800;color:#ffd36b;line-height:1.2;overflow-wrap:anywhere}
+.hl .two em{font-style:normal;font-size:14px;color:#e6f2d8}
+.hl .qk{margin-top:8px;font-size:13px;font-weight:700}
+.hl .line{margin-top:8px;background:#ffd36b;color:#14532d;border-radius:10px;padding:7px 8px;font-weight:800;font-size:clamp(13px,3.9vw,16px);line-height:1.35}.hl .qk b{font-size:19px;color:#ffd36b}
+.bags{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+.bags div{background:var(--soft);border:1.5px solid var(--line);border-radius:14px;text-align:center;padding:12px 6px}
+.bags span{display:block;font-size:13px;color:var(--muted);font-weight:600}
+.bags strong{font-size:32px;color:var(--green);line-height:1.2}
+.note{color:var(--muted);font-size:14px;margin:10px 0 0;text-align:center}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:2px solid var(--line);display:flex;gap:10px;z-index:5}
+.bar button{flex:1;font:inherit;font-weight:800;font-size:17px;border:0;border-radius:14px;min-height:52px;cursor:pointer}
+#share{background:#25a244;color:#fff;flex:2.2}#reset{background:transparent;color:var(--ink);border:2px solid var(--line)}
+#share:disabled{opacity:.5}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:0 0 10px}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="stamp" id="stamp">—</div>
+  <div class="pa">ਗੁਰਮਤ ਟ੍ਰੇਡਰਜ਼</div>
+  <h1>Gurmat Traders</h1>
+  <p>ਅਨਾਜ ਮੰਡੀ · Grain Moisture &amp; Weight Calculator</p>
+</div>
+<div class="pat"></div>
+<main>
+  <section class="card">
+    <h2>Input <small>ਜਾਣਕਾਰੀ</small></h2>
+    <div class="grid">
+      <div class="full"><label for="party">Party / Farmer name (ਕਿਸਾਨ ਦਾ ਨਾਮ)</label><input id="party" type="text" placeholder="e.g. Balwinder Singh" autocomplete="off"></div>
+      <div><label for="qty">Quantity (ਮਾਤਰਾ)</label><div class="u"><input id="qty" type="number" inputmode="decimal" min="0" step="any" placeholder="0"><i>quintal</i></div></div>
+      <div><label for="moist">Moisture (ਨਮੀ)</label><div class="u"><input id="moist" type="number" inputmode="decimal" min="0" step="any" placeholder="18"><i>%</i></div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Result <small>ਨਤੀਜਾ</small></h2>
+    <div class="tw"><table>
+      <thead><tr><th>ਵੇਰਵਾ<small>Details</small></th><th>ਕਿਲੋ<small>Total Kg</small></th><th>ਕੁਇੰਟਲ · ਕਿਲੋ<small>Quintal · Kg</small></th></tr></thead>
+      <tbody>
+        <tr><td>ਕੁੱਲ ਵਜ਼ਨ<small>Gross weight</small></td><td class="k" id="g_k"></td><td class="q" id="g_q"></td></tr>
+        <tr class="neg"><td>ਨਮੀ ਕਟੌਤੀ<small>Moisture cut (<span id="ex">0</span>% extra)</small></td><td class="k" id="m_k"></td><td class="q" id="m_q"></td></tr>
+        <tr class="neg"><td>ਸਫ਼ਾਈ ਕਟੌਤੀ<small>Cleaning cut</small></td><td class="k" id="c_k"></td><td class="q" id="c_q"></td></tr>
+        <tr class="neg tot"><td>ਕੁੱਲ ਕਟੌਤੀ<small>Total cut</small></td><td class="k" id="t_k"></td><td class="q" id="t_q"></td></tr>
+        <tr class="final"><td>ਬਾਕੀ ਵਜ਼ਨ<small>Remaining</small></td><td class="k" id="r_k"></td><td class="q" id="r_q"></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="card hl">
+    <h2>Remaining Quantity <small>ਬਾਕੀ ਮਾਤਰਾ</small></h2>
+    <div class="two"><div><span>ਕੁਇੰਟਲ · Quintal</span><strong id="hq">0.00</strong><em>quintal</em></div><div><span>ਕਿਲੋ · Kilogram</span><strong id="hk">0.00</strong><em>kg</em></div></div>
+    <div class="qk" id="hqk"></div>
+  </section>
+
+  <section class="card hl">
+    <h2>Estimated Bags <small>ਅੰਦਾਜ਼ਨ ਬੋਰੀਆਂ</small></h2>
+    <div class="two"><div><span>ਪੂਰੀਆਂ ਬੋਰੀਆਂ · Full Bags</span><strong id="bags">0</strong><em>bags</em></div><div><span>ਬਚਿਆ · Left Over</span><strong id="lk">0.00</strong><em>kg</em></div></div>
+    <div class="line" id="left">1 bag = 37.5 kg</div>
+    <div class="qk">ਸਹੀ ਬੋਰੀਆਂ · Exact: <b id="bagsX">0.00</b> &middot; ਇੱਕ ਬੋਰੀ · 1 bag = 37.5 kg</div>
+  </section>
+  <footer>ਨਮੀ 18% ਤੋਂ ਵੱਧ: ਹਰ 1% ਤੇ 1 ਕਿਲੋ ਪ੍ਰਤੀ ਕੁਇੰਟਲ · ਸਫ਼ਾਈ: 1 ਕਿਲੋ ਪ੍ਰਤੀ ਕੁਇੰਟਲ<br>Moisture above 18%: 1 kg cut per quintal per 1% · Cleaning: 1 kg per quintal</footer>
+</main>
+<div class="bar"><button id="reset">ਸਾਫ਼ · Clear</button><button id="share">ਵਟਸਐਪ ਭੇਜੋ · Share</button></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const BASE=18,RATE=1,CLEAN=1,BAG=37.5;
+const num=v=>{const x=parseFloat(v);return isFinite(x)&&x>0?x:0};
+const fmt=(x,d=2)=>x.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtN=x=>x.toLocaleString('en-IN',{maximumFractionDigits:2});
+function split(kg){kg=Math.round(kg*100)/100;const q=Math.floor(kg/100+1e-9);return[q,Math.round((kg-q*100)*100)/100]}
+function qk(kg){const[q,k]=split(kg);return`<b>${fmtN(q)}</b><span>quintal</span> <b>${fmtN(k)}</b><span>kg</span>`}
+function stampNow(){const d=new Date();return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}
+setInterval(()=>$('stamp').textContent=stampNow(),20000);$('stamp').textContent=stampNow();
+let R={};
+function calc(){
+  const q=num($('qty').value),m=num($('moist').value);
+  const gross=q*100,extra=Math.max(0,m-BASE),mc=extra*RATE*q,cc=CLEAN*q,tc=mc+cc,rem=Math.max(0,gross-tc);
+  const exact=rem/BAG,full=Math.floor(exact+1e-9),left=rem-full*BAG;
+  [['g',gross],['m',-mc],['c',-cc],['t',-tc],['r',rem]].forEach(([p,v])=>{
+    $(p+'_k').textContent=(v<0?'– ':'')+fmt(Math.abs(v))+' kg';
+    $(p+'_q').innerHTML=(v<0?'– ':'')+qk(Math.abs(v));
+  });
+  $('ex').textContent=fmtN(extra);
+  $('hq').textContent=fmt(rem/100);$('hk').textContent=fmt(rem);$('hqk').innerHTML=qk(rem);
+  $('bags').textContent=full;$('bagsX').textContent=fmt(exact);$('lk').textContent=fmt(q?left:0);
+  $('left').textContent=q?`${full} ਪੂਰੀਆਂ ਬੋਰੀਆਂ (full bags) + ${fmt(left)} ਕਿਲੋ (kg) ਬਚਿਆ`:'ਮਾਤਰਾ ਪਾਓ · Enter quantity';
+  R={q,m,extra,gross,mc,cc,tc,rem,full,exact,left};
+}
+['party','qty','moist'].forEach(i=>$(i).addEventListener('input',calc));
+$('reset').onclick=()=>{['party','qty','moist'].forEach(i=>$(i).value='');calc()};
+
+/* ---------- A4 slip drawn on canvas ---------- */
+async function makeSlip(){
+  try{await Promise.all([document.fonts.load('800 40px "Noto Sans Gurmukhi"'),document.fonts.load('700 30px Mukta'),document.fonts.load('400 30px Mukta')])}catch(e){}
+  const W=1240,H=1754,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const G='#1f6b2a',GOLD='#e39a12',INK='#2d2310',MUT='#7b6a45',LINE='#e7d9b0',RED='#b3261e';
+  const F=(w,s,fam='Mukta')=>x.font=`${w} ${s}px "${fam}", "Noto Sans Gurmukhi", sans-serif`;
+  const T=(t,px,py,al='left',col=INK)=>{x.fillStyle=col;x.textAlign=al;x.fillText(t,px,py)};
+  x.fillStyle='#fffdf6';x.fillRect(0,0,W,H);
+  // header
+  let g=x.createLinearGradient(0,0,W,300);g.addColorStop(0,'#14532d');g.addColorStop(1,'#2f8a3a');
+  x.fillStyle=g;x.fillRect(0,0,W,300);
+  F(800,86,'Noto Sans Gurmukhi');T('ਗੁਰਮਤ ਟ੍ਰੇਡਰਜ਼',W/2,130,'center','#ffd36b');
+  F(800,46);T('GURMAT TRADERS',W/2,200,'center','#fff');
+  F(400,28);T('ਅਨਾਜ ਮੰਡੀ · Grain Weight Calculation Slip',W/2,250,'center','#e6f2d8');
+  const cols=['#e39a12','#c62828','#1b4f9c','#2f8a3a'];
+  for(let i=0;i*40<W;i++){x.fillStyle=cols[i%4];x.fillRect(i*40,300,40,18)}
+  // meta
+  F(400,30);T('Date & Time: '+stampNow(),80,390,'left',MUT);
+  F(700,38);T('Party: '+(($('party').value.trim())||'—'),80,450,'left',INK);
+  // inputs
+  x.fillStyle='#eef6e8';x.strokeStyle=LINE;x.lineWidth=2;
+  [[80,490,'Quantity',fmtN(R.q)+' quintal'],[640,490,'Moisture',fmtN(R.m)+' %']].forEach(([bx,by,l,v])=>{
+    x.beginPath();x.roundRect(bx,by,520,120,18);x.fill();x.stroke();
+    F(400,26);T(l,bx+24,by+40,'left',MUT);F(800,46);T(v,bx+24,by+94,'left',INK)});
+  // table
+  const tx=80,tw=1080,cw=[400,300,380];let ty=660;
+  x.fillStyle=G;x.fillRect(tx,ty,tw,64);F(700,26);
+  T('Details',tx+20,ty+42,'left','#fff');T('Total Kg',tx+cw[0]+cw[1]-20,ty+42,'right','#fff');T('Quintal  |  Kg',tx+cw[0]+cw[1]+20,ty+42,'left','#fff');
+  const rows=[['Gross weight',R.gross,0],['Moisture cut ('+fmtN(R.extra)+'% extra)',R.mc,1],['Cleaning cut',R.cc,1],['Total cut',R.tc,1],['REMAINING',R.rem,2]];
+  ty+=64;
+  rows.forEach(([l,v,t])=>{
+    const h=t==2?110:92;
+    if(t==2){x.fillStyle='#14532d';x.fillRect(tx,ty+8,tw,h)}else{x.fillStyle='#eef6e8';x.fillRect(tx+cw[0]+cw[1],ty,cw[2],h);x.strokeStyle=LINE;x.lineWidth=2;x.beginPath();x.moveTo(tx,ty+h);x.lineTo(tx+tw,ty+h);x.stroke()}
+    const by=ty+(t==2?8:0)+h/2+12,col=t==2?'#fff':(t==1?RED:INK),sg=t==1?'– ':'';
+    F(t==2?800:600,t==2?36:30);T(l,tx+20,by,'left',col);
+    F(800,t==2?40:32);T(sg+fmt(v)+' kg',tx+cw[0]+cw[1]-20,by,'right',col);
+    const[q,k]=split(v);let px=tx+cw[0]+cw[1]+20;
+    F(800,t==2?44:34);const a=sg+fmtN(q);T(a,px,by,'left',t==2?'#ffd36b':G);px+=x.measureText(a).width+8;
+    F(400,24);T('quintal',px,by,'left',t==2?'#d9e8c9':MUT);px+=x.measureText('quintal').width+16;
+    F(800,t==2?44:34);const b=fmtN(k);T(b,px,by,'left',t==2?'#ffd36b':G);px+=x.measureText(b).width+8;
+    F(400,24);T('kg',px,by,'left',t==2?'#d9e8c9':MUT);
+    ty+=h+(t==2?8:0)});
+  // bags
+  ty+=50;x.fillStyle='#fff7e0';x.strokeStyle=GOLD;x.lineWidth=3;x.beginPath();x.roundRect(80,ty,1080,210,22);x.fill();x.stroke();
+  F(800,34,'Noto Sans Gurmukhi');T('ਅੰਦਾਜ਼ਨ ਬੋਰੀਆਂ · Estimated Bags',110,ty+55,'left',G);
+  F(800,84);T(String(R.full),110,ty+155,'left',INK);F(600,28);T('full bags',110+x.measureText(String(R.full)).width+14,ty+155,'left',MUT);
+  F(600,30);T('Exact: '+fmt(R.exact)+' bags',1130,ty+110,'right',INK);T('Left over: '+fmt(R.left)+' kg',1130,ty+160,'right',MUT);
+  // rules + footer
+  F(400,24);T('Rules: moisture above 18% → 1 kg cut per quintal for each 1%  |  Cleaning → 1 kg per quintal  |  1 bag = 37.5 kg',W/2,H-150,'center',MUT);
+  x.fillStyle=G;x.fillRect(0,H-90,W,90);F(700,30);T('Gurmat Traders · ਧੰਨਵਾਦ / Thank you',W/2,H-35,'center','#fff');
+  return new Promise(r=>c.toBlob(r,'image/png'));
+}
+$('share').onclick=async()=>{
+  calc();
+  if(!R.q){$('qty').focus();return}
+  const btn=$('share');btn.disabled=true;
+  try{
+    const blob=await makeSlip(),file=new File([blob],'gurmat-traders-slip.png',{type:'image/png'});
+    const text=`Gurmat Traders\n${stampNow()}\nParty: ${$('party').value.trim()||'—'}\nQty: ${fmtN(R.q)} quintal | Moisture: ${fmtN(R.m)}%\nRemaining: ${split(R.rem)[0]} quintal ${fmtN(split(R.rem)[1])} kg\nBags: ${R.full} (+${fmt(R.left)} kg)`;
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Gurmat Traders',text})}
+    else{
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+      alert('Slip image saved. Opening WhatsApp – attach the saved image there.');
+      window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+    }
+  }catch(e){if(e&&e.name!=='AbortError')alert('Could not share. Please try again.')}
+  btn.disabled=false;
+};
+calc();
+</script>
+</body>
+</html>

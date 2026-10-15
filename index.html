@@ -116,7 +116,6 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:0 0 10px}
 <div class="msg" id="msg"></div>
 <div class="bar"><button id="reset">ਸਾਫ਼ · Clear</button><button id="share">ਵਟਸਐਪ ਭੇਜੋ · Share</button></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const BASE=18,RATE=1,CLEAN=1,BAG=37.5;
@@ -145,18 +144,100 @@ function calc(){
 ['party','qty','moist'].forEach(i=>$(i).addEventListener('input',calc));
 $('reset').onclick=()=>{['party','qty','moist'].forEach(i=>$(i).value='');calc()};
 
-/* ---------- A4 slip = exact snapshot of this page ---------- */
+/* ---------- A4 slip (drawn directly, same on every phone) ---------- */
 async function makeSlip(){
-  if(!window.html2canvas) throw new Error('lib');
-  try{await document.fonts.ready}catch(e){}
-  $('stamp').textContent=stampNow();
-  const shot=await html2canvas(document.body,{scale:2,windowWidth:640,scrollX:0,scrollY:-window.scrollY,backgroundColor:'#f6efdc',useCORS:true,logging:false,
-    onclone:d=>{d.documentElement.setAttribute('data-theme','light');const bar=d.querySelector('.bar');if(bar)bar.remove();d.body.style.paddingBottom='12px';d.documentElement.style.padding='0'}});
+  try{if(document.fonts){await Promise.all([document.fonts.load('800 40px "Noto Sans Gurmukhi"','ਗੁਰਮਤ'),document.fonts.load('600 30px "Noto Sans Gurmukhi"','ਕੁਇੰਟਲ'),document.fonts.load('700 30px Mukta','Ab1'),document.fonts.load('400 30px Mukta','Ab1')])}}catch(e){}
   const W=1240,H=1754,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const FAM='"Noto Sans Gurmukhi","Mukta",system-ui,sans-serif';
+  const GD='#14532d',GM='#2f8a3a',GOLD='#ffd36b',LINE='#e7d9b0',SOFT='#eef6e8',RED='#b3261e',MUT='#7b6a45',INK='#2d2310',GT='#1f6b2a';
+  const font=(w,sz)=>{x.font=w+' '+sz+'px '+FAM};
+  const T=(t,px,py,al,col)=>{x.textAlign=al||'left';x.textBaseline='alphabetic';x.fillStyle=col;x.fillText(t,px,py)};
+  const fit=(t,maxW,w,sz)=>{font(w,sz);while(sz>12&&x.measureText(t).width>maxW){sz--;font(w,sz)}};
+  const tx=(t,px,py,al,col,maxW,w,sz)=>{fit(t,maxW,w,sz);T(t,px,py,al,col)};
+  const rr=(px,py,w,h,r)=>{x.beginPath();x.moveTo(px+r,py);x.arcTo(px+w,py,px+w,py+h,r);x.arcTo(px+w,py+h,px,py+h,r);x.arcTo(px,py+h,px,py,r);x.arcTo(px,py,px+w,py,r);x.closePath()};
+  const box=(px,py,w,h,r,fill,stroke)=>{rr(px,py,w,h,r);x.fillStyle=fill;x.fill();if(stroke){x.strokeStyle=stroke;x.lineWidth=2;x.stroke()}};
+  const grad=(px,py,w,h,r)=>{const g=x.createLinearGradient(px,py,px+w,py+h);g.addColorStop(0,GD);g.addColorStop(1,GM);box(px,py,w,h,r,g)};
+  const qkRow=(kg,px,py,maxW,size,nc,uc,sg)=>{
+    const sp=split(kg),a=sg+fmtN(sp[0]),b=fmtN(sp[1]);let sz=size,wd=0;
+    for(;sz>12;sz--){font(800,sz);wd=x.measureText(a).width+x.measureText(b).width;font(600,Math.round(sz*.62));wd+=x.measureText('quintal').width+x.measureText('kg').width+30;if(wd<=maxW)break}
+    let cx=px;font(800,sz);T(a,cx,py,'left',nc);cx+=x.measureText(a).width+8;
+    const us=Math.round(sz*.62);font(600,us);T('quintal',cx,py,'left',uc);cx+=x.measureText('quintal').width+14;
+    font(800,sz);T(b,cx,py,'left',nc);cx+=x.measureText(b).width+8;
+    font(600,us);T('kg',cx,py,'left',uc);
+  };
+  // background
   x.fillStyle='#f6efdc';x.fillRect(0,0,W,H);
-  const m=40,k=Math.min((W-2*m)/shot.width,(H-2*m)/shot.height),w=shot.width*k,h=shot.height*k;
-  x.drawImage(shot,(W-w)/2,(H-h)/2,w,h);
-  return new Promise(r=>c.toBlob(r,'image/png'));
+  // header
+  grad(0,0,W,250,0);
+  box(W/2-230,22,460,44,22,'rgba(0,0,0,0.28)');
+  tx(stampNow(),W/2,53,'center','#ffffff',420,600,26);
+  tx('ਗੁਰਮਤ ਟ੍ਰੇਡਰਜ਼',W/2,140,'center',GOLD,1000,800,78);
+  tx('GURMAT TRADERS',W/2,193,'center','#ffffff',1000,800,40);
+  tx('ਅਨਾਜ ਮੰਡੀ · Grain Moisture & Weight Calculator',W/2,234,'center','#e6f2d8',1000,600,24);
+  const cols=['#e39a12','#c62828','#1b4f9c','#2f8a3a'];
+  for(let i=0;i*40<W;i++){x.fillStyle=cols[i%4];x.fillRect(i*40,250,40,16)}
+  // input card
+  box(60,290,1120,270,22,'#fffdf6',LINE);
+  tx('ਜਾਣਕਾਰੀ · Input',90,332,'left',GT,600,800,30);
+  tx('ਕਿਸਾਨ ਦਾ ਨਾਮ · Party / Farmer name',90,372,'left',MUT,1000,600,22);
+  box(90,382,1060,60,12,'#f6efdc',LINE);
+  tx(($('party').value.trim())||'—',110,425,'left',INK,1020,700,34);
+  tx('ਮਾਤਰਾ · Quantity',90,478,'left',MUT,520,600,22);
+  tx('ਨਮੀ · Moisture',620,478,'left',MUT,520,600,22);
+  box(90,488,530,58,12,'#f6efdc',LINE);box(620,488,530,58,12,'#f6efdc',LINE);
+  tx(fmtN(R.q),110,531,'left',INK,330,800,36);tx('quintal',600,531,'right',MUT,120,600,22);
+  tx(fmtN(R.m),640,531,'left',INK,330,800,36);tx('%',1130,531,'right',MUT,100,600,22);
+  // result card
+  box(60,580,1120,505,22,'#fffdf6',LINE);
+  tx('ਨਤੀਜਾ · Result',90,620,'left',GT,600,800,30);
+  const X0=90,C1=380,C2=290,C3=390;let ry=635;
+  rr(X0,ry,1060,56,10);x.fillStyle=GT;x.fill();
+  tx('ਵੇਰਵਾ · Details',X0+20,ry+37,'left','#ffffff',340,700,22);
+  tx('ਕਿਲੋ · Total Kg',X0+C1+C2-20,ry+37,'right','#ffffff',260,700,22);
+  tx('ਕੁਇੰਟਲ · Quintal · Kg',X0+C1+C2+20,ry+37,'left','#ffffff',350,700,22);
+  ry+=56;
+  const rows=[['ਕੁੱਲ ਵਜ਼ਨ','Gross weight',R.gross,0],['ਨਮੀ ਕਟੌਤੀ','Moisture cut ('+fmtN(R.extra)+'% extra)',R.mc,1],['ਸਫ਼ਾਈ ਕਟੌਤੀ','Cleaning cut',R.cc,1],['ਕੁੱਲ ਕਟੌਤੀ','Total cut',R.tc,2],['ਬਾਕੀ ਵਜ਼ਨ','Remaining',R.rem,3]];
+  rows.forEach(r=>{
+    const t=r[3],h=76,qx=X0+C1+C2;
+    if(t===3){box(X0,ry,1060,h,10,GM);x.fillStyle=GD;x.fillRect(qx,ry,C3,h)}
+    else if(t===2){x.fillStyle='#c9ecb8';x.fillRect(X0,ry,1060,h);x.fillStyle='#b5e39f';x.fillRect(qx,ry,C3,h)}
+    else{x.fillStyle=SOFT;x.fillRect(qx,ry,C3,h);x.fillStyle=LINE;x.fillRect(X0,ry+h-2,1060,2)}
+    const lc=t===3?'#ffffff':(t===2?GD:INK),sc=t===3?'#d9e8c9':(t===2?'#3d6b3a':MUT);
+    const kc=t===3?'#ffffff':(t>=1?RED:INK),nc=t===3?GOLD:GD,uc=t===3?'#d9e8c9':'#3d6b3a';
+    const sg=t===1||t===2?'– ':'';
+    tx(r[0],X0+20,ry+34,'left',lc,350,700,28);
+    tx(r[1],X0+20,ry+61,'left',sc,350,600,20);
+    tx(sg+fmt(r[2])+' kg',X0+C1+C2-20,ry+48,'right',kc,265,800,30);
+    qkRow(r[2],qx+20,ry+50,C3-40,t===3?38:34,nc,uc,sg);
+    ry+=h;
+  });
+  // remaining block
+  grad(60,1105,1120,200,22);
+  tx('ਬਾਕੀ ਮਾਤਰਾ · Remaining Quantity',W/2,1142,'center',GOLD,1000,800,28);
+  box(90,1160,520,92,14,'rgba(0,0,0,0.25)');box(630,1160,520,92,14,'rgba(0,0,0,0.25)');
+  tx('ਕੁਇੰਟਲ · Quintal',350,1186,'center','#e6f2d8',480,600,20);
+  tx('ਕਿਲੋ · Kilogram',890,1186,'center','#e6f2d8',480,600,20);
+  tx(fmt(R.rem/100),350,1238,'center',GOLD,480,800,46);
+  tx(fmt(R.rem),890,1238,'center',GOLD,480,800,46);
+  (function(){const sp=split(R.rem),a=fmtN(sp[0]),b=fmtN(sp[1]);font(800,28);const w1=x.measureText(a).width;font(600,22);const w2=x.measureText('quintal').width,w4=x.measureText('kg').width;font(800,28);const w3=x.measureText(b).width;
+    let cx=W/2-(w1+w2+w3+w4+30)/2;font(800,28);T(a,cx,1288,'left',GOLD);cx+=w1+8;font(600,22);T('quintal',cx,1288,'left','#e6f2d8');cx+=w2+14;font(800,28);T(b,cx,1288,'left',GOLD);cx+=w3+8;font(600,22);T('kg',cx,1288,'left','#e6f2d8')})();
+  // bags block
+  grad(60,1325,1120,260,22);
+  tx('ਅੰਦਾਜ਼ਨ ਬੋਰੀਆਂ · Estimated Bags',W/2,1362,'center',GOLD,1000,800,28);
+  box(90,1378,520,92,14,'rgba(0,0,0,0.25)');box(630,1378,520,92,14,'rgba(0,0,0,0.25)');
+  tx('ਪੂਰੀਆਂ ਬੋਰੀਆਂ · Full Bags',350,1404,'center','#e6f2d8',480,600,20);
+  tx('ਬਚਿਆ · Left Over',890,1404,'center','#e6f2d8',480,600,20);
+  tx(String(R.full),350,1456,'center',GOLD,480,800,46);
+  tx(fmt(R.left)+' kg',890,1456,'center',GOLD,480,800,46);
+  box(90,1484,1060,52,12,GOLD);
+  tx(R.full+' ਪੂਰੀਆਂ ਬੋਰੀਆਂ (full bags) + '+fmt(R.left)+' ਕਿਲੋ (kg) ਬਚਿਆ',W/2,1519,'center',GD,1020,800,26);
+  tx('ਸਹੀ ਬੋਰੀਆਂ · Exact: '+fmt(R.exact)+'  ·  ਇੱਕ ਬੋਰੀ · 1 bag = 37.5 kg',W/2,1566,'center','#e6f2d8',1050,700,22);
+  // rules
+  tx('ਨਮੀ 18% ਤੋਂ ਵੱਧ: ਹਰ 1% ਤੇ 1 ਕਿਲੋ ਪ੍ਰਤੀ ਕੁਇੰਟਲ · ਸਫ਼ਾਈ: 1 ਕਿਲੋ ਪ੍ਰਤੀ ਕੁਇੰਟਲ',W/2,1630,'center',MUT,1100,600,22);
+  tx('Moisture above 18%: 1 kg cut per quintal per 1%  ·  Cleaning: 1 kg per quintal',W/2,1663,'center',MUT,1100,600,22);
+  x.fillStyle=GT;x.fillRect(0,1694,W,60);
+  tx('ਗੁਰਮਤ ਟ੍ਰੇਡਰਜ਼ · Gurmat Traders · ਧੰਨਵਾਦ / Thank you',W/2,1733,'center','#ffffff',1100,700,28);
+  return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('toBlob')),'image/png'));
 }
 const sig=()=>JSON.stringify([$('party').value.trim(),$('qty').value,$('moist').value]);
 let cache=null,tmr=null,busy=null;
